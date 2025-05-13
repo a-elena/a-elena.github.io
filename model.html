@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Neural Network Architecture Visualizer</title>
+  <meta charset="UTF-8" />
+  <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+    
+    const ChevronDown = () => (
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    );
+    
+    const ChevronUp = () => (
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+    );
+
+    const ModelVisualizer = () => {
+      const [activeTab, setActiveTab] = useState('model1');
+      const [expandedSections, setExpandedSections] = useState({
+        inputAttention: false,
+        branches: false,
+        crossAttention: false,
+        fusion: false,
+        heads: false,
+        graph: false,
+        model3Input: false,
+        model3Blocks: false,
+        model3Heads: false,
+        model3Graph: false
+      });
+
+      const toggleSection = (section) => {
+        setExpandedSections({
+          ...expandedSections,
+          [section]: !expandedSections[section]
+        });
+      };
+
+      const ExpandableSection = ({ title, isExpanded, onToggle, children }) => (
+        <div className="border rounded-md mb-4">
+          <button 
+            onClick={onToggle}
+            className="w-full flex justify-between items-center p-3 bg-gray-100 hover:bg-gray-200 transition-colors"
+          >
+            <span className="font-medium">{title}</span>
+            {isExpanded ? <ChevronUp /> : <ChevronDown />}
+          </button>
+          {isExpanded && (
+            <div className="p-4 bg-white">
+              {children}
+            </div>
+          )}
+        </div>
+      );
+
+      return (
+        <div className="max-w-4xl mx-auto p-4">
+          <h1 className="text-2xl font-bold mb-6 text-center">Neural Network Architecture Visualizer</h1>
+          
+          <div className="flex mb-6">
+            <button 
+              className={`flex-1 py-2 px-4 ${activeTab === 'model1' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+              onClick={() => setActiveTab('model1')}
+            >
+              MultiHeadPredictor
+            </button>
+            <button 
+              className={`flex-1 py-2 px-4 ${activeTab === 'model2' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+              onClick={() => setActiveTab('model2')}
+            >
+              MultiHeadPredictor3
+            </button>
+          </div>
+          
+          {activeTab === 'model1' ? (
+            <div>
+              <div className="bg-blue-50 p-4 rounded-md mb-6">
+                <h2 className="text-xl font-bold mb-2">MultiHeadPredictor Overview</h2>
+                <p className="mb-4">A complex architecture with dual processing branches and multiple attention mechanisms.</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white p-3 rounded shadow-sm">
+                    <p className="font-medium">Input Dimensions</p>
+                    <p className="text-gray-600">Combined embedding + features</p>
+                  </div>
+                  <div className="bg-white p-3 rounded shadow-sm">
+                    <p className="font-medium">Output Heads</p>
+                    <p className="text-gray-600">4 prediction heads</p>
+                  </div>
+                  <div className="bg-white p-3 rounded shadow-sm">
+                    <p className="font-medium">Attention Layers</p>
+                    <p className="text-gray-600">Input, Cross-branch, Head</p>
+                  </div>
+                  <div className="bg-white p-3 rounded shadow-sm">
+                    <p className="font-medium">Activation</p>
+                    <p className="text-gray-600">LeakyReLU</p>
+                  </div>
+                </div>
+              </div>
+              
+              <ExpandableSection 
+                title="Input Attention" 
+                isExpanded={expandedSections.inputAttention}
+                onToggle={() => toggleSection('inputAttention')}
+              >
+                <p className="mb-2">Features are weighted using a learned attention mechanism:</p>
+                <div className="bg-gray-100 p-3 rounded">
+                  <p>Linear(input_dim, 128)</p>
+                  <p>LayerNorm(128)</p>
+                  <p>LeakyReLU()</p>
+                  <p>Linear(128, input_dim)</p>
+                  <p>Sigmoid()</p>
+                </div>
+                <p className="mt-2 text-gray-600">The sigmoid output creates weights between 0-1 that are multiplied with the input features.</p>
+              </ExpandableSection>
+              
+              <ExpandableSection 
+                title="Parallel Processing Branches" 
+                isExpanded={expandedSections.branches}
+                onToggle={() => toggleSection('branches')}
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="font-medium mb-2">Branch 1:</p>
+                    <div className="bg-gray-100 p-3 rounded">
+                      <p>Linear(input_dim, 256)</p>
+                      <p>LayerNorm(256)</p>
+                      <p>LeakyReLU()</p>
+                      <p>Dropout(rate)</p>
+                      <p>Linear(256, 128)</p>
+                      <p>LayerNorm(128)</p>
+                      <p>LeakyReLU()</p>
+                      <p>Dropout(rate * 0.8)</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-medium mb-2">Branch 2:</p>
+                    <div className="bg-gray-100 p-3 rounded">
+                      <p>Linear(input_dim, 256)</p>
+                      <p>LayerNorm(256)</p>
+                      <p>LeakyReLU()</p>
+                      <p>Dropout(rate)</p>
+                      <p>Linear(256, 128)</p>
+                      <p>LayerNorm(128)</p>
+                      <p>LeakyReLU()</p>
+                      <p>Dropout(rate * 0.8)</p>
+                    </div>
+                  </div>
+                </div>
+                <p className="mt-3 text-gray-600">Outputs from both branches are concatenated to form a 256-dimensional vector.</p>
+              </ExpandableSection>
+              
+              <ExpandableSection 
+                title="Cross-Branch Attention" 
+                isExpanded={expandedSections.crossAttention}
+                onToggle={() => toggleSection('crossAttention')}
+              >
+                <p className="mb-2">Applies attention across the combined branch outputs:</p>
+                <div className="bg-gray-100 p-3 rounded">
+                  <p>Linear(256, 128)</p>
+                  <p>LayerNorm(128)</p>
+                  <p>LeakyReLU()</p>
+                  <p>Linear(128, 256)</p>
+                  <p>Sigmoid()</p>
+                </div>
+                <p className="mt-2 text-gray-600">The output is element-wise multiplied with the concatenated branch outputs.</p>
+              </ExpandableSection>
+              
+              <ExpandableSection 
+                title="Feature Fusion" 
+                isExpanded={expandedSections.fusion}
+                onToggle={() => toggleSection('fusion')}
+              >
+                <p className="mb-2">Integrates features from both branches:</p>
+                <div className="bg-gray-100 p-3 rounded">
+                  <p>Linear(256, 128)</p>
+                  <p>LayerNorm(128)</p>
+                  <p>LeakyReLU()</p>
+                  <p>Dropout(rate * 0.6)</p>
+                  <p>Linear(128, 64)</p>
+                  <p>LayerNorm(64)</p>
+                  <p>LeakyReLU()</p>
+                  <p>Dropout(rate * 0.4)</p>
+                </div>
+                <p className="mt-2">Followed by shared processing:</p>
+                <div className="bg-gray-100 p-3 rounded">
+                  <p>Linear(64, 32)</p>
+                  <p>LayerNorm(32)</p>
+                  <p>LeakyReLU()</p>
+                  <p>Dropout(rate * 0.2)</p>
+                </div>
+              </ExpandableSection>
+              
+              <ExpandableSection 
+                title="Task-Specific Heads" 
+                isExpanded={expandedSections.heads}
+                onToggle={() => toggleSection('heads')}
+              >
+                <p className="mb-3">Four parallel prediction heads, each with its own attention mechanism:</p>
+                
+                <p className="font-medium mb-1">Head Attention (4x):</p>
+                <div className="bg-gray-100 p-3 rounded mb-3">
+                  <p>Linear(32, 16)</p>
+                  <p>LayerNorm(16)</p>
+                  <p>LeakyReLU()</p>
+                  <p>Linear(16, 1)</p>
+                  <p>Sigmoid()</p>
+                </div>
+                
+                <p className="font-medium mb-1">Head Output (4x):</p>
+                <div className="bg-gray-100 p-3 rounded">
+                  <p>Linear(32, 16)</p>
+                  <p>LayerNorm(16)</p>
+                  <p>LeakyReLU()</p>
+                  <p>Dropout(rate * 0.1)</p>
+                  <p>Linear(16, 1)</p>
+                </div>
+                
+                <p className="mt-3 text-gray-600">The final output stacks the predictions from all four heads.</p>
+              </ExpandableSection>
+              <ExpandableSection 
+                title="Graph" 
+                isExpanded={expandedSections.graph}
+                onToggle={() => toggleSection('graph')}
+              >
+              <img 
+                src=".\model1.svg"
+                alt="Model3 Architecture" 
+                className="mt-4 w-full max-w-md"
+                />
+              </ExpandableSection>
+            </div>
+          ) : (
+            <div>
+              <div className="bg-green-50 p-4 rounded-md mb-6">
+                <h2 className="text-xl font-bold mb-2">MultiHeadPredictor3 Overview</h2>
+                <p className="mb-4">A streamlined architecture with residual connections and multi-head outputs.</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white p-3 rounded shadow-sm">
+                    <p className="font-medium">Input Dimensions</p>
+                    <p className="text-gray-600">Combined embedding + features</p>
+                  </div>
+                  <div className="bg-white p-3 rounded shadow-sm">
+                    <p className="font-medium">Output Heads</p>
+                    <p className="text-gray-600">4 prediction heads</p>
+                  </div>
+                  <div className="bg-white p-3 rounded shadow-sm">
+                    <p className="font-medium">Key Feature</p>
+                    <p className="text-gray-600">Residual connections</p>
+                  </div>
+                  <div className="bg-white p-3 rounded shadow-sm">
+                    <p className="font-medium">Normalization</p>
+                    <p className="text-gray-600">BatchNorm instead of LayerNorm</p>
+                  </div>
+                </div>
+              </div>
+              
+              <ExpandableSection 
+                title="Input Processing" 
+                isExpanded={expandedSections.model3Input}
+                onToggle={() => toggleSection('model3Input')}
+              >
+                <p className="mb-2">Initial feature processing:</p>
+                <div className="bg-gray-100 p-3 rounded">
+                  <p>Linear(input_dim, 256)</p>
+                  <p>BatchNorm1d(256)</p>
+                  <p>LeakyReLU()</p>
+                </div>
+              </ExpandableSection>
+              
+              <ExpandableSection 
+                title="Processing Blocks with Residual Connection" 
+                isExpanded={expandedSections.model3Blocks}
+                onToggle={() => toggleSection('model3Blocks')}
+              >
+                <div className="mb-4">
+                  <p className="font-medium mb-2">Block 1:</p>
+                  <div className="bg-gray-100 p-3 rounded">
+                    <p>Linear(256, 128)</p>
+                    <p>BatchNorm1d(128)</p>
+                    <p>LeakyReLU()</p>
+                  </div>
+                </div>
+                
+                <div className="mb-2">
+                  <p className="font-medium mb-2">Block 2:</p>
+                  <div className="bg-gray-100 p-3 rounded">
+                    <p>Linear(128, 64)</p>
+                    <p>BatchNorm1d(64)</p>
+                    <p>LeakyReLU(0.1)</p>
+                  </div>
+                </div>
+                
+                <div className="mb-4">
+                  <p className="font-medium mb-2">Residual Projection:</p>
+                  <div className="bg-gray-100 p-3 rounded">
+                    <p>Linear(128, 64)</p>
+                  </div>
+                  <p className="mt-2 text-gray-600">This projection allows Block 1 output to be added to Block 2 output (residual connection).</p>
+                </div>
+                
+                <div className="mb-4">
+                  <p className="font-medium mb-2">Block 3:</p>
+                  <div className="bg-gray-100 p-3 rounded">
+                    <p>Linear(64, 32)</p>
+                    <p>BatchNorm1d(32)</p>
+                    <p>LeakyReLU(0.1)</p>
+                  </div>
+                </div>
+                
+                <p className="mb-2">Final Dropout:</p>
+                <div className="bg-gray-100 p-3 rounded">
+                  <p>Dropout(dropout_rate)</p>
+                </div>
+              </ExpandableSection>
+              
+              <ExpandableSection 
+                title="Output Heads" 
+                isExpanded={expandedSections.model3Heads}
+                onToggle={() => toggleSection('model3Heads')}
+              >
+                <p className="mb-3">Four simple linear prediction heads:</p>
+                
+                <div className="bg-gray-100 p-3 rounded">
+                  <p>Head 1-4: Linear(32, 1)</p>
+                </div>
+                
+                <p className="mt-3 text-gray-600">The final output stacks the predictions from all four heads.</p>
+              </ExpandableSection>
+
+              <ExpandableSection 
+                title="Graph" 
+                isExpanded={expandedSections.model3Graph}
+                onToggle={() => toggleSection('model3Graph')}
+              >
+              <img 
+                src=".\model3.svg"
+                alt="Model3 Architecture" 
+                className="mt-4 w-full max-w-md"
+                />
+              </ExpandableSection>
+
+            </div>
+
+            
+          )}
+        </div>
+      );
+    };
+    
+    ReactDOM.render(<ModelVisualizer />, document.getElementById('root'));
+  </script>
+</body>
+</html>
